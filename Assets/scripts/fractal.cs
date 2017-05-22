@@ -12,6 +12,8 @@ public class fractal : MonoBehaviour {
     [Range(0, 1)]
     public float childScale = 0.5f;
     Vector3 objectSize;
+    [Range(0, 5)]
+    public float drawDelay = 0.2f;
 
     // Use this for initialization
     void Start()
@@ -20,11 +22,21 @@ public class fractal : MonoBehaviour {
         gameObject.AddComponent<MeshRenderer>().material = material;
         if (depth <= maxChildren)
         {
-            new GameObject("Fractal Child" + depth).AddComponent<fractal>().Initialize(this);
+            StartCoroutine(createChildren());
         }
     }
 
-    private void Initialize(fractal parent)
+    IEnumerator createChildren()
+    {
+        yield return new WaitForSeconds(drawDelay);
+        new GameObject("Fractal Child.Up." + depth).AddComponent<fractal>().Initialize(this, Vector3.up, Quaternion.identity);
+        yield return new WaitForSeconds(drawDelay);
+        new GameObject("Fractal Child.Right." + depth).AddComponent<fractal>().Initialize(this, Vector3.right, Quaternion.Euler(0, 0, -90));
+        yield return new WaitForSeconds(drawDelay);
+        new GameObject("Fractal Child.Left." + depth).AddComponent<fractal>().Initialize(this, Vector3.left, Quaternion.Euler(0, 0, 90));
+    }
+
+    private void Initialize(fractal parent, Vector3 direction, Quaternion orientation)
     {
         mesh = parent.mesh;
         material = parent.material;
@@ -34,7 +46,8 @@ public class fractal : MonoBehaviour {
         depth = parent.depth + 1;
         transform.parent = parent.transform;
         transform.localScale = objectSize * childScale;
-        transform.localPosition = Vector3.up * (objectSize.y / 2 + 0.5f * childScale);
+        transform.localPosition = direction * (objectSize.y / 2 + 0.5f * childScale);
+        transform.localRotation = orientation;
     }
 
     // Update is called once per frame
