@@ -14,6 +14,20 @@ public class fractal : MonoBehaviour {
     Vector3 objectSize;
     [Range(0, 5)]
     public float drawDelay = 0.2f;
+    private static Vector3[] childDirections = {
+        Vector3.up,
+        Vector3.right,
+        Vector3.left,
+        Vector3.forward,
+        Vector3.back
+    };
+    private static Quaternion[] childOrientations = {
+        Quaternion.identity,
+        Quaternion.Euler(0f, 0f, -90f),
+        Quaternion.Euler(0f, 0f, 90f),
+        Quaternion.Euler(90f, 0f, 0f),
+        Quaternion.Euler(-90f, 0f, 0f)
+    };
 
     // Use this for initialization
     void Start()
@@ -28,15 +42,14 @@ public class fractal : MonoBehaviour {
 
     IEnumerator createChildren()
     {
-        yield return new WaitForSeconds(drawDelay);
-        new GameObject("Fractal Child.Up." + depth).AddComponent<fractal>().Initialize(this, Vector3.up, Quaternion.identity);
-        yield return new WaitForSeconds(drawDelay);
-        new GameObject("Fractal Child.Right." + depth).AddComponent<fractal>().Initialize(this, Vector3.right, Quaternion.Euler(0, 0, -90));
-        yield return new WaitForSeconds(drawDelay);
-        new GameObject("Fractal Child.Left." + depth).AddComponent<fractal>().Initialize(this, Vector3.left, Quaternion.Euler(0, 0, 90));
+        for (int i = 0; i < childDirections.Length; i++)
+        {
+            yield return new WaitForSeconds(drawDelay);
+            new GameObject("Fractal Child.Up." + depth).AddComponent<fractal>().Initialize(this, i);
+        }
     }
 
-    private void Initialize(fractal parent, Vector3 direction, Quaternion orientation)
+    private void Initialize(fractal parent, int childIndex)
     {
         mesh = parent.mesh;
         material = parent.material;
@@ -46,8 +59,8 @@ public class fractal : MonoBehaviour {
         depth = parent.depth + 1;
         transform.parent = parent.transform;
         transform.localScale = objectSize * childScale;
-        transform.localPosition = direction * (objectSize.y / 2 + 0.5f * childScale);
-        transform.localRotation = orientation;
+        transform.localPosition = childDirections[childIndex] * (objectSize.y / 2 + 0.5f * childScale);
+        transform.localRotation = childOrientations[childIndex];
     }
 
     // Update is called once per frame
